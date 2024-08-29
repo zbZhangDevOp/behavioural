@@ -15,19 +15,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
+import { Database } from '@/database.types';
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-export interface Company {
-  id: number;
-  name: string;
-  industry: string;
-  location: string;
-  website: string;
-  notes: string;
-}
-
-export const columns: ColumnDef<Company>[] = [
+export const columns: ColumnDef<Database['public']['Tables']['company']>[] = [
   {
     id: 'select',
     header: ({ table }) => (
@@ -64,47 +54,27 @@ export const columns: ColumnDef<Company>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: 'name',
+    accessorKey: 'company_name',
     header: 'Name',
     cell: ({ row }) => {
       const company = row.original;
 
       return (
         <Link href={`/jobs/company/${company.id}`}>
-          <div className='font-medium text-sky-600'>{row.getValue('name')}</div>
+          <div className='font-medium text-sky-600'>
+            {row.getValue('company_name')}
+          </div>
         </Link>
       );
     },
   },
   {
-    accessorKey: 'industry',
-    header: 'Industry',
-    cell: ({ row }) => {
-      return (
-        <div className='font-medium text-gray-800 dark:text-gray-100'>
-          {row.getValue('industry')}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: 'location',
-    header: 'Location',
-    cell: ({ row }) => {
-      return (
-        <div className='font-medium text-gray-800 dark:text-gray-100'>
-          {row.getValue('location')}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: 'website',
+    accessorKey: 'company_website',
     header: 'Website',
     cell: ({ row }) => {
       return (
         <div className='text-blue-500 hover:underline'>
-          {row.getValue('website')}
+          {row.getValue('company_website')}
         </div>
       );
     },

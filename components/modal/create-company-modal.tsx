@@ -13,7 +13,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import ModalBasic from '../modal-basic';
-import { Input } from '../ui/input';
 
 import {
   Select,
@@ -25,40 +24,36 @@ import {
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { Input } from '../ui/input';
 
-const JobFeedbackSchema = z.object({
-  jobTitle: z.string().min(1, { message: 'Job title must not be empty.' }),
+const CompanySchema = z.object({
   companyName: z
     .string()
     .min(1, { message: 'Company name must not be empty.' }),
-  applicationStatus: z.enum(['pending', 'in-progress', 'completed']),
-  applicationDate: z.string().optional(),
+  companyWebsite: z.string().url().optional().nullable(),
 });
 
-interface CreateJobModalProps {
+interface CreateCompanyModalProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
 }
 
-export default function CreateJobModal({
+export default function CreateCompanyModal({
   isOpen,
   setIsOpen,
-}: CreateJobModalProps) {
+}: CreateCompanyModalProps) {
   const supabase = createClientComponentClient();
-
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof JobFeedbackSchema>>({
-    resolver: zodResolver(JobFeedbackSchema),
+  const form = useForm<z.infer<typeof CompanySchema>>({
+    resolver: zodResolver(CompanySchema),
     defaultValues: {
-      jobTitle: '',
       companyName: '',
-      applicationStatus: 'pending',
-      applicationDate: '',
+      companyWebsite: '',
     },
   });
 
-  const handleSubmit = async (data: z.infer<typeof JobFeedbackSchema>) => {
+  const handleSubmit = async (data: z.infer<typeof CompanySchema>) => {
     // Handle form submission logic here, such as sending data to an API
     console.log(data);
 
@@ -70,12 +65,10 @@ export default function CreateJobModal({
         throw new Error('User not logged in or ID is undefined');
       }
 
-      const { error } = await supabase.from('job').insert([
+      const { error } = await supabase.from('company').insert([
         {
-          job_title: data.jobTitle,
           company_name: data.companyName,
-          application_status: data.applicationStatus,
-          application_date: data.applicationDate,
+          company_website: data.companyWebsite,
           user_id: user.id,
         },
       ]);
@@ -86,11 +79,11 @@ export default function CreateJobModal({
     } catch (error: any) {
       console.error('Error fetching collections:', error.message);
 
-      toast.error('Failed to add a new job.');
+      toast.error('Failed to add a new company.');
       return null;
     }
 
-    toast.success('Job added successfully');
+    toast.success('Company added successfully');
 
     router.refresh();
 
@@ -100,30 +93,11 @@ export default function CreateJobModal({
   if (!isOpen) return null;
 
   return (
-    <ModalBasic isOpen={isOpen} setIsOpen={setIsOpen} title='Send Feedback'>
+    <ModalBasic isOpen={isOpen} setIsOpen={setIsOpen} title='Add Company'>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className='space-y-4'>
           <div className=''>
             <div className='space-y-3'>
-              <FormField
-                control={form.control}
-                name='jobTitle'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className='block text-sm font-medium mb-1'>
-                      Job Title
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='Job Title'
-                        {...field}
-                        className='form-input w-full px-2 py-1'
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name='companyName'
@@ -145,43 +119,18 @@ export default function CreateJobModal({
               />
               <FormField
                 control={form.control}
-                name='applicationStatus'
+                name='companyWebsite'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className='block text-sm font-medium mb-1'>
-                      Application Status
-                    </FormLabel>
-                    <FormControl>
-                      <Select>
-                        <SelectTrigger className='btn justify-between min-w-[11rem] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'>
-                          <SelectValue placeholder='Select status' />
-                        </SelectTrigger>
-                        <SelectContent className='bg-white dark:bg-gray-800'>
-                          <SelectItem value='pending'>Pending</SelectItem>
-                          <SelectItem value='in-progress'>
-                            In Progress
-                          </SelectItem>
-                          <SelectItem value='completed'>Completed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='applicationDate'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className='block text-sm font-medium mb-1'>
-                      Applied On
+                      Company Website (Optional)
                     </FormLabel>
                     <FormControl>
                       <Input
-                        type='date'
+                        type='url'
+                        placeholder='Company Website'
                         {...field}
+                        value={field.value || ''} // Convert null to empty string
                         className='form-input w-full px-2 py-1'
                       />
                     </FormControl>

@@ -5,60 +5,98 @@ import SearchForm from '@/components/search-form';
 import DeleteButton from '@/components/delete-button';
 import FilterButton from '@/components/dropdown-filter';
 import PaginationClassic from '@/components/pagination-classic';
-import CompaniesTable from './company-table';
-import DateSelect from '@/components/date-select';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DataTable } from './data-table';
 import { columns } from './columns';
+import { Database } from '@/database.types';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import CreateCompanyModal from '@/components/modal/create-company-modal';
+import DateSelect from '@/components/date-select';
 
 function CompaniesContent() {
   // Some dummy company data
-  const companies = [
-    {
-      id: 0,
-      name: 'Google',
-      industry: 'Technology',
-      location: 'Sydney, Australia',
-      website: 'https://www.google.com',
-      notes: 'Focus on innovation and employee growth',
-    },
-    {
-      id: 1,
-      name: 'Facebook',
-      industry: 'Social Media',
-      location: 'Melbourne, Australia',
-      website: 'https://www.facebook.com',
-      notes: 'Emphasize community building and privacy',
-    },
-    {
-      id: 2,
-      name: 'Amazon',
-      industry: 'E-commerce',
-      location: 'Sydney, Australia',
-      website: 'https://www.amazon.com',
-      notes: 'Customer-centric culture and logistics excellence',
-    },
-    {
-      id: 3,
-      name: 'Microsoft',
-      industry: 'Software',
-      location: 'Brisbane, Australia',
-      website: 'https://www.microsoft.com',
-      notes: 'Strong focus on cloud computing and AI',
-    },
-    {
-      id: 4,
-      name: 'Tesla',
-      industry: 'Automotive',
-      location: 'Sydney, Australia',
-      website: 'https://www.tesla.com',
-      notes: 'Pioneering in electric vehicles and clean energy',
-    },
-    // Add more companies as needed
-  ];
+  // const companies = [
+  //   {
+  //     id: 0,
+  //     name: 'Google',
+  //     industry: 'Technology',
+  //     location: 'Sydney, Australia',
+  //     website: 'https://www.google.com',
+  //     notes: 'Focus on innovation and employee growth',
+  //   },
+  //   {
+  //     id: 1,
+  //     name: 'Facebook',
+  //     industry: 'Social Media',
+  //     location: 'Melbourne, Australia',
+  //     website: 'https://www.facebook.com',
+  //     notes: 'Emphasize community building and privacy',
+  //   },
+  //   {
+  //     id: 2,
+  //     name: 'Amazon',
+  //     industry: 'E-commerce',
+  //     location: 'Sydney, Australia',
+  //     website: 'https://www.amazon.com',
+  //     notes: 'Customer-centric culture and logistics excellence',
+  //   },
+  //   {
+  //     id: 3,
+  //     name: 'Microsoft',
+  //     industry: 'Software',
+  //     location: 'Brisbane, Australia',
+  //     website: 'https://www.microsoft.com',
+  //     notes: 'Strong focus on cloud computing and AI',
+  //   },
+  //   {
+  //     id: 4,
+  //     name: 'Tesla',
+  //     industry: 'Automotive',
+  //     location: 'Sydney, Australia',
+  //     website: 'https://www.tesla.com',
+  //     notes: 'Pioneering in electric vehicles and clean energy',
+  //   },
+  //   // Add more companies as needed
+  // ];
 
-  const [applicationStatus, setApplicationStatus] = useState('');
+  const [createJobModalIsOpen, setCreateJobModalIsOpen] = useState(false);
 
+  const [companies, setCompanies] = useState<
+    Database['public']['Tables']['company'][]
+  >([]);
+
+  const supabase = createClientComponentClient();
+
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  const fetchJobs = async () => {
+    try {
+      const userResponse = await supabase.auth.getUser();
+      const user = userResponse.data.user;
+
+      if (!user || !user.id) {
+        throw new Error('User not logged in or ID is undefined');
+      }
+      const { data, error } = await supabase
+        .from('company')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setCompanies(data);
+
+      console.log('Fetched companies:', data);
+    } catch (error: any) {
+      console.error('Error fetching companies:', error.message);
+
+      return null;
+    }
+  };
   return (
     <div className='px-4 sm:px-6 lg:px-8 py-8 w-full max-w-[96rem] mx-auto'>
       {/* Page header */}
@@ -75,7 +113,12 @@ function CompaniesContent() {
           {/* Search form */}
           <SearchForm placeholder='Search by company name or industry…' />
           {/* Create company button */}
-          <button className='btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white'>
+          <button
+            className='btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white'
+            onClick={() => {
+              setCreateJobModalIsOpen(true);
+            }}
+          >
             <svg
               className='fill-current shrink-0 xs:hidden'
               width='16'
@@ -86,6 +129,10 @@ function CompaniesContent() {
             </svg>
             <span className='max-xs:sr-only'>Add Company</span>
           </button>
+          <CreateCompanyModal
+            isOpen={createJobModalIsOpen}
+            setIsOpen={setCreateJobModalIsOpen}
+          />
         </div>
       </div>
 
@@ -128,11 +175,11 @@ function CompaniesContent() {
           {/* Delete button */}
           <DeleteButton />
           {/* Dropdown */}
-          <DateSelect
+          {/* <DateSelect
             selectedValue={applicationStatus}
             setSelectedValue={setApplicationStatus}
             placeholder='Select application status'
-          />
+          /> */}
           {/* Filter button */}
           <FilterButton align='right' />
         </div>
