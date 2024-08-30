@@ -10,19 +10,32 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@/database.types';
 
 import Editor from '@/components/editor/advanced-editor';
-import toast from 'react-hot-toast';
 import { defaultValue } from '@/lib/default-value';
+import toast from 'react-hot-toast';
 
-export default function NotePage({ jobId }: { jobId: string }) {
+export default function QuestionPage({ questionId }: { questionId: string }) {
   const [noteTabs, setNoteTabs] = useState<
     Database['public']['Tables']['interview_section'][]
   >([]);
+
+  const [selectedTab, setSelectedTab] = useState<
+    Database['public']['Tables']['interview_section'] | null
+  >(null);
 
   const supabase = createClientComponentClient();
 
   useEffect(() => {
     fetchNotes();
   }, []);
+
+  const [value, setValue] = useState<JSONContent>({});
+
+  useEffect(() => {
+    if (selectedTab) {
+      setValue(selectedTab.notes || {});
+      console.log(value);
+    }
+  }, [selectedTab]);
 
   const fetchNotes = async () => {
     try {
@@ -32,7 +45,6 @@ export default function NotePage({ jobId }: { jobId: string }) {
       if (!user || !user.id) {
         throw new Error('User not logged in or ID is undefined');
       }
-
       const { data, error } = await supabase
         .from('interview_section')
         .select('*')
@@ -42,13 +54,7 @@ export default function NotePage({ jobId }: { jobId: string }) {
         throw error;
       }
 
-      // Initialize the noteTabs with the fetched data
-      setNoteTabs(
-        data.map((tab) => ({
-          ...tab,
-          notes: tab.notes || defaultValue, // Ensure each tab has a default value for notes
-        }))
-      );
+      setNoteTabs(data);
 
       console.log('Fetched jobs:', data);
     } catch (error: any) {
@@ -58,8 +64,12 @@ export default function NotePage({ jobId }: { jobId: string }) {
     }
   };
 
-  const onSave = async (tabId: string, value: JSONContent | null) => {
+  const onSave = async () => {
     try {
+      if (!selectedTab) {
+        throw new Error('Cannot edit company info in current page');
+      }
+
       const userResponse = await supabase.auth.getUser();
       const user = userResponse.data.user;
 
@@ -72,17 +82,17 @@ export default function NotePage({ jobId }: { jobId: string }) {
         .update({
           notes: value,
         })
-        .eq('id', tabId);
+        .eq('id', selectedTab?.id);
 
       if (error) {
         throw error;
       }
 
-      console.log(`Saved successfully for tab ${tabId}`);
-      toast.success(`Saved successfully for tab ${tabId}`);
+      console.log('Saved successfully');
+      toast.success('Saved successfully');
     } catch (error: any) {
-      console.error(`Error saving notes for tab ${tabId}`, error.message);
-      toast.error(`Error saving notes for tab ${tabId}`);
+      console.error('Error saving notes', error.message);
+      toast.error('Error saving notes');
       return null;
     }
   };
@@ -90,42 +100,38 @@ export default function NotePage({ jobId }: { jobId: string }) {
   return (
     <>
       {/* Left content */}
-      <FeedLeftContent jobId={jobId} notes={noteTabs} />
+      <FeedLeftContent
+        jobId={jobId}
+        notes={noteTabs}
+        setSelectedTab={setSelectedTab}
+        selectedTab={selectedTab}
+      />
       <div className='px-4 sm:px-6 lg:px-8 py-8 w-full'>
         {/* Page content */}
-        <div className='mx-auto flex flex-col gap-1 lg:space-x-8 xl:space-x-16 w-full'>
+        <div className='mx-auto flex flex-col lg:space-x-8 xl:space-x-16 w-full'>
           {/* Content */}
-          {noteTabs.map((tab) => (
-            <div key={tab.id} id={`section-${tab.id}`} className='!ml-0'>
-              {/* Profile background */}
-              <div className='mb-6 flex justify-between items-center'>
-                <h2 className='text-2xl text-gray-800 dark:text-gray-100 font-bold text-center'>
-                  {tab.name}
-                </h2>
+          <div>
+            {/* Profile background */}
+            <div className='mb-6 flex justify-between items-center'>
+              <h2 className='text-2xl text-gray-800 dark:text-gray-100 font-bold text-center'>
+                {selectedTab ? selectedTab.name : 'Company Info'}
+              </h2>
+              {selectedTab && (
                 <button
                   className='btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white'
-                  onClick={() => onSave(tab.id, tab.notes)}
+                  onClick={onSave}
                 >
                   Save
                 </button>
-              </div>
-
-              <Editor
-                initialValue={tab.notes}
-                onChange={(newValue) => {
-                  setNoteTabs((prevTabs) =>
-                    prevTabs.map((prevTab) =>
-                      prevTab.id === tab.id
-                        ? { ...prevTab, notes: newValue }
-                        : prevTab
-                    )
-                  );
-                }}
-                key={tab.id}
-              />
-              <hr className='my-6 border-t border-gray-100 dark:border-gray-700/60' />
+              )}
             </div>
-          ))}
+            <Editor
+              initialValue={value}
+              onChange={setValue}
+              key={selectedTab ? selectedTab.id : 'editor'}
+            />
+            <hr className='my-6 border-t border-gray-100 dark:border-gray-700/60' />
+          </div>
         </div>
       </div>
     </>

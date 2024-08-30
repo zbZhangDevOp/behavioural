@@ -59,7 +59,7 @@ const Editor = ({ initialValue, onChange }: EditorProp) => {
           <EditorCommandEmpty className='px-2 text-muted-foreground'>
             No results
           </EditorCommandEmpty>
-          <EditorCommandList>
+          <EditorCommandList className='bg-white'>
             {suggestionItems.map((item) => (
               <EditorCommandItem
                 value={item.title}

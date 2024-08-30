@@ -152,7 +152,13 @@ export default function CreateJobModal({
                       Application Status
                     </FormLabel>
                     <FormControl>
-                      <Select>
+                      <Select
+                        onValueChange={(value) => {
+                          // @ts-ignore
+                          form.setValue('applicationStatus', value);
+                        }}
+                        value={field.value}
+                      >
                         <SelectTrigger className='btn justify-between min-w-[11rem] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'>
                           <SelectValue placeholder='Select status' />
                         </SelectTrigger>

@@ -1,13 +1,56 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
 
 export type Database = {
   public: {
     Tables: {
+      behavioural_question: {
+        Row: {
+          answer_text: Json | null
+          confidence_level: number | null
+          created_at: string | null
+          id: string
+          question_text: string
+          user_id: string | null
+        }
+        Insert: {
+          answer_text?: Json | null
+          confidence_level?: number | null
+          created_at?: string | null
+          id: string
+          question_text: string
+          user_id?: string | null
+        }
+        Update: {
+          answer_text?: Json | null
+          confidence_level?: number | null
+          created_at?: string | null
+          id?: string
+          question_text?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "behavioural_question_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company: {
         Row: {
           company_name: string
           company_website: string | null
           created_at: string | null
           id: string
+          notes: Json | null
           updated_at: string | null
           user_id: string | null
         }
@@ -16,6 +59,7 @@ export type Database = {
           company_website?: string | null
           created_at?: string | null
           id?: string
+          notes?: Json | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -24,6 +68,7 @@ export type Database = {
           company_website?: string | null
           created_at?: string | null
           id?: string
+          notes?: Json | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -41,30 +86,27 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
-          interview_date: string | null
           job_id: string
           name: string
-          notes: string | null
+          notes: Json | null
           section_type: Database["public"]["Enums"]["note_type"] | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
-          interview_date?: string | null
           job_id: string
           name?: string
-          notes?: string | null
+          notes?: Json | null
           section_type?: Database["public"]["Enums"]["note_type"] | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
-          interview_date?: string | null
           job_id?: string
           name?: string
-          notes?: string | null
+          notes?: Json | null
           section_type?: Database["public"]["Enums"]["note_type"] | null
           updated_at?: string | null
         }

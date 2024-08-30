@@ -61,38 +61,34 @@ export default function CompanyInfo({ companyId }: { companyId: string }) {
     }
   };
 
-  //   const onSave = async () => {
-  //     try {
-  //       if (!selectedTab) {
-  //         throw new Error('Cannot edit company info in current page');
-  //       }
+  const onSave = async () => {
+    try {
+      const userResponse = await supabase.auth.getUser();
+      const user = userResponse.data.user;
 
-  //       const userResponse = await supabase.auth.getUser();
-  //       const user = userResponse.data.user;
+      if (!user || !user.id) {
+        throw new Error('User not logged in or ID is undefined');
+      }
 
-  //       if (!user || !user.id) {
-  //         throw new Error('User not logged in or ID is undefined');
-  //       }
+      const { error } = await supabase
+        .from('company')
+        .update({
+          notes: value,
+        })
+        .eq('id', companyId);
 
-  //       const { error } = await supabase
-  //         .from('interview_section')
-  //         .update({
-  //           notes: value,
-  //         })
-  //         .eq('id', selectedTab?.id);
+      if (error) {
+        throw error;
+      }
 
-  //       if (error) {
-  //         throw error;
-  //       }
-
-  //       console.log('Saved successfully');
-  //       toast.success('Saved successfully');
-  //     } catch (error: any) {
-  //       console.error('Error saving notes', error.message);
-  //       toast.error('Error saving notes');
-  //       return null;
-  //     }
-  //   };
+      console.log('Saved successfully');
+      toast.success('Saved successfully');
+    } catch (error: any) {
+      console.error('Error saving notes', error.message);
+      toast.error('Error saving notes');
+      return null;
+    }
+  };
 
   if (!companyInfo) {
     return null;
@@ -129,25 +125,12 @@ export default function CompanyInfo({ companyId }: { companyId: string }) {
             {/* Company name and info */}
             <div className='mb-4'>
               <h2 className='text-2xl text-gray-800 dark:text-gray-100 font-bold mb-2'>
-                Revolut Ltd
+                {companyInfo.company_name}
               </h2>
             </div>
 
             {/* Meta */}
             <div className='inline-flex flex-wrap justify-center sm:justify-start space-x-4'>
-              <div className='flex items-center'>
-                <svg
-                  className='fill-current shrink-0 text-gray-400 dark:text-gray-500'
-                  width='16'
-                  height='16'
-                  viewBox='0 0 16 16'
-                >
-                  <path d='M8 8.992a2 2 0 1 1-.002-3.998A2 2 0 0 1 8 8.992Zm-.7 6.694c-.1-.1-4.2-3.696-4.2-3.796C1.7 10.69 1 8.892 1 6.994 1 3.097 4.1 0 8 0s7 3.097 7 6.994c0 1.898-.7 3.697-2.1 4.996-.1.1-4.1 3.696-4.2 3.796-.4.3-1 .3-1.4-.1Zm-2.7-4.995L8 13.688l3.4-2.997c1-1 1.6-2.198 1.6-3.597 0-2.798-2.2-4.996-5-4.996S3 4.196 3 6.994c0 1.399.6 2.698 1.6 3.697 0-.1 0-.1 0 0Z' />
-                </svg>
-                <span className='text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400 ml-2'>
-                  London, UK
-                </span>
-              </div>
               <div className='flex items-center'>
                 <svg
                   className='fill-current shrink-0 text-gray-400 dark:text-gray-500'
@@ -161,7 +144,7 @@ export default function CompanyInfo({ companyId }: { companyId: string }) {
                   className='text-sm font-medium whitespace-nowrap text-violet-500 hover:text-violet-600 dark:hover:text-violet-400 ml-2'
                   href='#0'
                 >
-                  revolut.com
+                  {companyInfo.company_website}
                 </a>
               </div>
             </div>
@@ -170,6 +153,14 @@ export default function CompanyInfo({ companyId }: { companyId: string }) {
       </header>
 
       <div className='m-5'>
+        <div className='mb-6 flex justify-between items-center'>
+          <button
+            className='btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white'
+            onClick={onSave}
+          >
+            Save
+          </button>
+        </div>
         <Editor initialValue={value} onChange={setValue} />
       </div>
     </>

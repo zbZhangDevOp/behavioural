@@ -12,7 +12,6 @@ import {
   Terminal,
   Video,
 } from 'lucide-react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
 
@@ -54,13 +53,9 @@ export default function FeedLeftContent({
     },
   ];
 
-  const handleTabClick = (tabId: string) => {
-    setSelectedTab(notes.find((tab) => tab.id === tabId) || null);
-    const section = document.getElementById(`section-${tabId}`);
-    if (section) {
-      section.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  // const handleTabClick = (route) => {
+  //   router.push(route); // Navigate to the selected route
+  // };
 
   return (
     <div className='w-full md:w-[15rem] mb-8 md:mb-0'>
@@ -135,9 +130,14 @@ export default function FeedLeftContent({
                     setIsOpen={setIsModalOpen}
                   />
                 </li>
+
+                {/* <a
+                  className='flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap'
+                  href='#0'
+                ></a> */}
               </ul>
             </div>
-            {/* <div>
+            <div>
               <div className='text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase mb-3 md:sr-only'>
                 Company Info
               </div>
@@ -147,7 +147,7 @@ export default function FeedLeftContent({
                     className={`flex items-center justify-start px-2.5 py-2 rounded-lg whitespace-nowrap active:bg-white  active:dark:bg-gray-800 w-full ${
                       selectedTab === null ? 'bg-white dark:bg-gray-800' : ''
                     }`}
-                    // onClick={() => setSelectedTab(null)}
+                    onClick={() => setSelectedTab(null)}
                   >
                     <Home
                       className='text-violet-500 mr-2'
@@ -172,7 +172,7 @@ export default function FeedLeftContent({
                   />
                 </li>
               </ul>
-            </div> */}
+            </div>
             {/* Group 2 */}
             <div>
               <div className='text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase mb-3'>
@@ -181,32 +181,30 @@ export default function FeedLeftContent({
               <ul className='flex flex-nowrap md:block mr-3 md:mr-0'>
                 {notes.map((tab) => (
                   <li key={tab.id} className='mr-0.5 md:mr-0 md:mb-0.5'>
-                    <Link href={`#section-${tab.id}`}>
-                      <Button
-                        className={`flex items-center justify-start px-2.5 py-2 rounded-lg whitespace-nowrap ${
+                    <Button
+                      className={`flex items-center justify-start px-2.5 py-2 rounded-lg whitespace-nowrap ${
+                        selectedTab && selectedTab.id === tab.id
+                          ? 'bg-white dark:bg-gray-800'
+                          : ''
+                      } active:bg-white  active:dark:bg-gray-800 w-full`}
+                      onClick={() => setSelectedTab(tab)}
+                    >
+                      <Notebook
+                        className='text-violet-500 mr-2'
+                        width='16'
+                        height='16'
+                        strokeWidth={3}
+                      />
+                      <span
+                        className={`text-sm font-medium ${
                           selectedTab && selectedTab.id === tab.id
-                            ? 'bg-white dark:bg-gray-800'
-                            : ''
-                        } active:bg-white active:dark:bg-gray-800 w-full`}
-                        // onClick={() => handleTabClick(tab.id)}
+                            ? 'text-violet-500'
+                            : 'text-gray-600 dark:text-gray-300'
+                        } active:text-violet-500`}
                       >
-                        <Notebook
-                          className='text-violet-500 mr-2'
-                          width='16'
-                          height='16'
-                          strokeWidth={3}
-                        />
-                        <span
-                          className={`text-sm font-medium ${
-                            selectedTab && selectedTab.id === tab.id
-                              ? 'text-violet-500'
-                              : 'text-gray-600 dark:text-gray-300'
-                          } active:text-violet-500`}
-                        >
-                          {tab.name}
-                        </span>
-                      </Button>
-                    </Link>
+                        {tab.name}
+                      </span>
+                    </Button>
                   </li>
                 ))}
               </ul>
